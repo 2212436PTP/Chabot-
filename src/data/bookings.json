@@ -1,0 +1,39 @@
+[
+  {
+    "id": 1764059793216,
+    "createdAt": "2025-11-25T08:36:33.216Z",
+    "placeName": "Tiệm Nướng Gỗ",
+    "type": "table",
+    "customerName": "thanh",
+    "phone": "0368635765",
+    "date": "2025-11-28",
+    "time": "19:00",
+    "guests": "6"
+  },
+  {
+    "id": 1764675189094,
+    "createdAt": "2025-12-02T11:33:09.094Z",
+    "placeName": "GoGi House Đà Lạt",
+    "type": "table",
+    "customerName": "Khang Ngu",
+    "phone": "0385241277",
+    "dateIn": "2025-12-03",
+    "guests": "4",
+    "time": "17:00",
+    "dateOut": null
+  },
+  {
+    "id": 1764675715474,
+    "createdAt": "2025-12-02T11:41:55.474Z",
+    "user_id": 1,
+    "place_name": "Quán Nướng Test",
+    "type": "table",
+    "customer_name": "Nguyễn Test",
+    "phone": "0901234567",
+    "date_in": "2025-12-05",
+    "date_out": null,
+    "time": "19:00",
+    "guests": 4,
+    "status": "pending"
+  }
+]

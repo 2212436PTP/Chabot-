@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dalat Assistant - Trợ lý Du lịch Thông minh</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --secondary-color: #2E7D32;
+            --text-dark: #333;
+            --text-light: #666;
+            --white: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background-color: #f9f9f9;
+        }
+
+        /* --- HEADER --- */
+        header {
+            background: var(--white);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* --- HERO SECTION --- */
+        .hero {
+            margin-top: 70px;
+            height: 90vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: var(--white);
+            padding: 0 20px;
+            overflow: hidden;
+        }
+
+        /* Slideshow background */
+        .hero-slideshow {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        .hero-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            transition: opacity 2s ease-in-out;
+            animation: kenburns 20s ease-in-out infinite;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+            filter: contrast(1.1) brightness(1.05);
+        }
+
+        .hero-slide.active {
+            opacity: 1;
+            z-index: 1;
+        }
+
+        /* Ken Burns effect - zoom và pan */
+        @keyframes kenburns {
+            0% {
+                transform: scale(1) translate(0, 0);
+            }
+            50% {
+                transform: scale(1.15) translate(-2%, -2%);
+            }
+            100% {
+                transform: scale(1) translate(0, 0);
+            }
+        }
+
+        /* Overlay gradient */
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.4));
+            z-index: 2;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 3;
+        }
+
+        .hero-content h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .hero-content p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: var(--primary-color);
+            color: var(--white);
+            padding: 12px 30px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: transform 0.3s, background 0.3s;
+            cursor: pointer;
+            border: none;
+        }
+
+        .cta-button:hover {
+            background: var(--secondary-color);
+            transform: translateY(-3px);
+        }
+
+        /* --- FEATURES --- */
+        .features {
+            padding: 5rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .features h2 {
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: var(--primary-color);
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transition: transform 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card h3 {
+            margin-bottom: 1rem;
+        }
+
+        /* --- FOOTER --- */
+        footer {
+            background: #333;
+            color: var(--white);
+            text-align: center;
+            padding: 2rem;
+            margin-top: auto;
+        }
+
+        /* --- CHATBOT STYLES (Đã tích hợp từ Widget cũ) --- */
+        #chat-launcher {
+            position: fixed; bottom: 30px; right: 30px;
+            width: 60px; height: 60px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 30px; color: white;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+            transition: all 0.3s ease;
+            z-index: 9998;
+            animation: bounce 2s infinite;
+        }
+        #chat-launcher:hover { transform: scale(1.1); }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Khung Chat */
+        #chat-widget {
+            position: fixed; bottom: 100px; right: 30px;
+            width: 380px; height: 600px;
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            display: flex; flex-direction: column;
+            overflow: hidden;
+            z-index: 9999;
+            opacity: 0; transform: translateY(20px) scale(0.9);
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+        #chat-widget.open {
+            opacity: 1; transform: translateY(0) scale(1);
+            visibility: visible;
+            bottom: 30px; /* Đè lên launcher */
+        }
+
+        /* Header Chat */
+        #chat-header {
+            padding: 15px 20px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            font-weight: bold;
+            display: flex; align-items: center; gap: 12px;
+            flex-shrink: 0;
+        }
+        #chat-avatar {
+            width: 35px; height: 35px;
+            border-radius: 50%; background: white; color: var(--primary-color);
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 900;
+        }
+        #chat-title {
+            flex: 1;
+        }
+        #chat-header-controls {
+            display: flex;
+            gap: 8px;
+            margin-left: auto;
+        }
+        #chat-header-controls button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            font-size: 18px;
+            width: 30px;
+            height: 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #chat-header-controls button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        #chat-maximize {
+            font-size: 16px;
+        }
+        
+        /* Chế độ phóng to */
+        #chat-widget.maximized {
+            width: 95vw !important;
+            height: 95vh !important;
+            bottom: 2.5vh !important;
+            right: 2.5vw !important;
+            max-width: 1200px;
+            max-height: 900px;
+        }
+        #chat-widget.maximized #chat-messages {
+            font-size: 1rem;
+        }
+
+        /* Body Chat */
+        #chat-messages {
+            flex: 1; padding: 20px; overflow-y: auto;
+            background: #f4f7f6;
+            display: flex; flex-direction: column; gap: 12px;
+        }
+        .message {
+            max-width: 85%; padding: 12px 16px; border-radius: 18px;
+            font-size: 0.95rem; line-height: 1.5;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .message.bot {
+            background: white; color: #333;
+            border-bottom-left-radius: 4px;
+            align-self: flex-start;
+        }
+        .message.user {
+            background: var(--primary-color); color: white;
+            border-bottom-right-radius: 4px;
+            align-self: flex-end;
+        }
+        .message.typing {
+            color: #888; font-style: italic; font-size: 0.8rem; background: none; box-shadow: none;
+        }
+
+        /* Choices inline (trong chat messages) */
+        .choices-inline {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 12px;
+            margin-bottom: 8px;
+            width: 100%;
+            max-width: 100%;
+        }
+        
+        @media (max-width: 400px) {
+            .choices-inline {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .choice-button-inline {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 12px 16px; 
+            border-radius: 12px;
+            cursor: pointer; 
+            font-size: 0.875rem; 
+            font-weight: 600;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(76, 175, 80, 0.25);
+            position: relative;
+            overflow: hidden;
+            line-height: 1.3;
+        }
+        
+        .choice-button-inline::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .choice-button-inline:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.35);
+        }
+        
+        .choice-button-inline:hover::before {
+            opacity: 1;
+        }
+        
+        .choice-button-inline:active {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(76, 175, 80, 0.3);
+        }
+
+        /* Chips/Buttons (giữ lại nhưng ẩn đi) */
+        #chat-choices {
+            display: none;
+        }
+
+        /* Input Area */
+        #chat-form {
+            display: flex; padding: 10px; background: white; border-top: 1px solid #eee;
+        }
+        #chat-input {
+            flex: 1; border: none; padding: 10px 15px;
+            border-radius: 25px; background: #f0f2f5; outline: none;
+        }
+        #chat-send {
+            background: none; border: none; color: var(--primary-color);
+            font-size: 24px; padding: 0 15px; cursor: pointer;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 480px) {
+            #chat-widget {
+                width: 100%; height: 100%; bottom: 0; right: 0; border-radius: 0;
+            }
+            #chat-widget.open { bottom: 0; }
+            .hero-content h1 { font-size: 2.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <nav class="nav-container">
+            <a href="#" class="logo">🌲 Dalat Trip</a>
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <span id="user-greeting" style="display: none; color: var(--primary-color); font-weight: 600;"></span>
+                <a id="admin-link" href="/admin.html" style="display: none; color: #e74c3c; font-weight: 700; text-decoration: none; padding: 8px 16px; border: 2px solid #e74c3c; border-radius: 20px;">🔐 Admin</a>
+                <button id="register-btn" class="cta-button" style="display: inline-block; background: #3498db;">Đăng ký</button>
+                <button id="login-btn" class="cta-button" style="display: inline-block;">Đăng nhập</button>
+                <button id="logout-btn" class="cta-button" style="display: none; background: #e74c3c;">Đăng xuất</button>
+                <button class="cta-button" onclick="document.getElementById('chat-launcher').click()">Tư vấn ngay</button>
+            </div>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <div class="hero-slideshow">
+            <div class="hero-slide active" style="background-image: url('/images/dalat1.png');"></div>
+            <div class="hero-slide" style="background-image: url('/images/dalat2.png');"></div>
+            <div class="hero-slide" style="background-image: url('/images/dalat3.png');"></div>
+            <div class="hero-slide" style="background-image: url('/images/dalat4.png');"></div>
+            <div class="hero-slide" style="background-image: url('/images/dalat5.png');"></div>
+        </div>
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1>Khám Phá Đà Lạt Mộng Mơ</h1>
+            <p>Lên lịch trình du lịch, tìm quán ăn ngon và địa điểm check-in cực chất chỉ trong 30 giây với Trợ lý AI của chúng tôi.</p>
+            <button class="cta-button" onclick="document.getElementById('chat-launcher').click()">Bắt đầu Trò chuyện</button>
+        </div>
+    </section>
+
+    <script>
+        // Slideshow functionality
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.hero-slide');
+        const totalSlides = slides.length;
+
+        function nextSlide() {
+            slides[currentSlide].classList.remove('active');
+            currentSlide = (currentSlide + 1) % totalSlides;
+            slides[currentSlide].classList.add('active');
+        }
+
+        // Change slide every 5 seconds
+        setInterval(nextSlide, 5000);
+    </script>
+
+    <section class="features">
+        <h2>Tại sao chọn chúng tôi?</h2>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon">📅</div>
+                <h3>Lịch Trình Cá Nhân Hóa</h3>
+                <p>Chỉ cần cho biết số ngày và sở thích, AI sẽ thiết kế lịch trình riêng cho bạn.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🍲</div>
+                <h3>Ẩm Thực Chuẩn Vị</h3>
+                <p>Gợi ý các quán nướng, lẩu, cafe "sống ảo" được xác thực, không lo bị hớ.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🤖</div>
+                <h3>Trợ Lý Thông Minh</h3>
+                <p>Hiểu tiếng Việt tự nhiên, trả lời mọi thắc mắc 24/7.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2025 Dalat Trip Assistant.</p>
+    </footer>
+    
+    <!-- Modal Đăng ký -->
+    <div id="register-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10002; align-items:center; justify-content:center; overflow-y:auto;">
+        <div style="background:white; padding:30px; border-radius:15px; width:90%; max-width:450px; position:relative; box-shadow: 0 10px 30px rgba(0,0,0,0.2); margin: 20px;">
+            <button id="close-register-modal" style="position:absolute; top:10px; right:15px; background:none; border:none; font-size:28px; cursor:pointer; color:#999;">&times;</button>
+            <h3 style="margin-bottom:20px; color:#3498db; text-align:center;">📝 Đăng ký tài khoản</h3>
+            <p style="margin-bottom:20px; color:#666; text-align:center; font-size:0.9rem;">Tạo tài khoản mới để trải nghiệm đầy đủ tính năng</p>
+            <form id="register-form" style="display:flex; flex-direction:column; gap:15px;">
+                <input type="text" id="register-name" placeholder="Họ và tên *" required style="padding:12px; border:1px solid #ddd; border-radius:8px; font-size:1rem;">
+                <input type="email" id="register-email" placeholder="Email *" required style="padding:12px; border:1px solid #ddd; border-radius:8px; font-size:1rem;">
+                <input type="tel" id="register-phone" placeholder="Số điện thoại *" required pattern="[0-9]{10,11}" style="padding:12px; border:1px solid #ddd; border-radius:8px; font-size:1rem;">
+                <input type="password" id="register-password" placeholder="Mật khẩu *" required minlength="6" style="padding:12px; border:1px solid #ddd; border-radius:8px; font-size:1rem;">
+                <input type="password" id="register-confirm-password" placeholder="Xác nhận mật khẩu *" required minlength="6" style="padding:12px; border:1px solid #ddd; border-radius:8px; font-size:1rem;">
+                <button type="submit" style="padding:12px; background:linear-gradient(135deg, #3498db, #2980b9); color:white; border:none; border-radius:8px; cursor:pointer; font-weight:600; font-size:1rem; transition: all 0.3s;">Đăng ký</button>
+                <p style="text-align:center; font-size:0.875rem; color:#666;">Đã có tài khoản? <a href="#" id="switch-to-login" style="color:#3498db; font-weight:600;">Đăng nhập ngay</a></p>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal Đăng nhập -->
+    <div id="login-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10001; align-items:center; justify-content:center;">
+        <div style="background:white; padding:30px; border-radius:15px; width:90%; max-width:400px; position:relative; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+            <button id="close-login-modal" style="position:absolute; top:10px; right:15px; background:none; border:none; font-size:28px; cursor:pointer; color:#999;">&times;</button>
+            <h3 style="margin-bottom:20px; color:#4CAF50; text-align:center;">🔐 Đăng nhập</h3>
+            <p style="margin-bottom:20px; color:#666; text-align:center; font-size:0.9rem;">Đăng nhập để sử dụng đầy đủ tính năng</p>
+            <form id="login-form" style="display:flex; flex-direction:column; gap:15px;">
+                <input type="email" id="login-email" placeholder="Email *" required style="padding:12px; border:1px solid #ddd; border-radius:8px; font-size:1rem;">
+                <input type="password" id="login-password" placeholder="Mật khẩu *" required style="padding:12px; border:1px solid #ddd; border-radius:8px; font-size:1rem;">
+                <button type="submit" style="padding:12px; background:linear-gradient(135deg, #4CAF50, #2E7D32); color:white; border:none; border-radius:8px; cursor:pointer; font-weight:600; font-size:1rem; transition: all 0.3s;">Đăng nhập</button>
+                <p style="text-align:center; font-size:0.875rem; color:#666;">Chưa có tài khoản? <a href="#" id="switch-to-register" style="color:#4CAF50; font-weight:600;">Đăng ký ngay</a></p>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal Đặt bàn -->
+    <div id="booking-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000; align-items:center; justify-content:center;">
+        <div style="background:white; padding:20px; border-radius:10px; width:90%; max-width:400px; position:relative;">
+            <h3 id="modal-title" style="margin-bottom:15px; color:#4CAF50;">Đặt chỗ</h3>
+            <form id="booking-form" style="display:flex; flex-direction:column; gap:10px;">
+                <input type="hidden" id="b-place-name">
+                <input type="hidden" id="b-type">
+                
+                <input type="text" id="b-name" placeholder="Tên của bạn" required style="padding:10px; border:1px solid #ddd; border-radius:5px;">
+                <input type="tel" id="b-phone" placeholder="Số điện thoại" required style="padding:10px; border:1px solid #ddd; border-radius:5px;">
+                
+                <div style="display:flex; gap:5px;">
+                    <div style="flex:1;">
+                        <label id="label-date-in" style="font-size:12px; color:#666;">Ngày</label>
+                        <input type="date" id="b-date-in" required style="width:100%; padding:10px; border:1px solid #ddd; border-radius:5px;">
+                    </div>
+                    
+                    <div id="wrapper-time" style="flex:1;">
+                        <label style="font-size:12px; color:#666;">Giờ</label>
+                        <input type="time" id="b-time" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:5px;">
+                    </div>
+
+                    <div id="wrapper-date-out" style="flex:1; display:none;">
+                        <label style="font-size:12px; color:#666;">Đến ngày</label>
+                        <input type="date" id="b-date-out" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:5px;">
+                    </div>
+                </div>
+                
+                <input type="number" id="b-guests" placeholder="Số lượng người" min="1" required style="padding:10px; border:1px solid #ddd; border-radius:5px;">
+                
+                <button type="submit" style="background:#4CAF50; color:white; border:none; padding:12px; border-radius:5px; cursor:pointer; font-weight:bold;">Xác nhận Đặt</button>
+                <button type="button" id="close-modal" style="background:#ccc; color:#333; border:none; padding:10px; border-radius:5px; cursor:pointer;">Hủy</button>
+            </form>
+        </div>
+    </div>
+    <script src="widget.js?v=2.0"></script>
+</body>
+</html>

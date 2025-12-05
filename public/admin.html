@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Dalat Trip</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4CAF50, #2E7D32);
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+        }
+
+        .header .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid white;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: white;
+            color: #4CAF50;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .stat-icon {
+            font-size: 2.5rem;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+        }
+
+        .stat-icon.users { background: #e3f2fd; }
+        .stat-icon.bookings { background: #fff3e0; }
+        .stat-icon.messages { background: #f3e5f5; }
+
+        .stat-info h3 {
+            font-size: 2rem;
+            color: #4CAF50;
+        }
+
+        .stat-info p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .tab {
+            padding: 1rem 2rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            color: #4CAF50;
+            border-bottom-color: #4CAF50;
+        }
+
+        .tab:hover {
+            color: #4CAF50;
+        }
+
+        .content-panel {
+            display: none;
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .content-panel.active {
+            display: block;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: #f9f9f9;
+            font-weight: 600;
+            color: #333;
+        }
+
+        tr:hover {
+            background: #f9f9f9;
+        }
+
+        .badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .badge.admin { background: #ffebee; color: #c62828; }
+        .badge.user { background: #e3f2fd; color: #1565c0; }
+        .badge.pending { background: #fff3e0; color: #f57c00; }
+        .badge.confirmed { background: #e8f5e9; color: #2e7d32; }
+        .badge.cancelled { background: #ffebee; color: #c62828; }
+        .badge.completed { background: #e0f2f1; color: #00695c; }
+
+        .action-btn {
+            padding: 6px 12px;
+            margin: 0 4px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-edit { background: #2196F3; color: white; }
+        .btn-edit:hover { background: #1976D2; }
+        .btn-delete { background: #f44336; color: white; }
+        .btn-delete:hover { background: #d32f2f; }
+        .btn-confirm { background: #4CAF50; color: white; }
+        .btn-confirm:hover { background: #388E3C; }
+
+        .filter-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-bar select {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 2rem;
+        }
+
+        .pagination button {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: #4CAF50;
+            color: white;
+            border-color: #4CAF50;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination button.active {
+            background: #4CAF50;
+            color: white;
+            border-color: #4CAF50;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+
+        .no-access {
+            text-align: center;
+            padding: 3rem;
+        }
+
+        .no-access h2 {
+            color: #f44336;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔐 Admin Panel - Dalat Trip</h1>
+        <div class="user-info">
+            <span id="admin-name">Admin</span>
+            <button class="logout-btn" onclick="logout()">Đăng xuất</button>
+        </div>
+    </div>
+
+    <div id="no-access" class="no-access" style="display: none;">
+        <h2>⛔ Không có quyền truy cập</h2>
+        <p>Bạn không phải là admin hoặc chưa đăng nhập.</p>
+        <button class="logout-btn" onclick="window.location.href='/'">Về trang chủ</button>
+    </div>
+
+    <div id="admin-content" class="container">
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon users">👥</div>
+                <div class="stat-info">
+                    <h3 id="stat-users">0</h3>
+                    <p>Người dùng</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon bookings">📅</div>
+                <div class="stat-info">
+                    <h3 id="stat-bookings">0</h3>
+                    <p>Tổng đặt chỗ</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon bookings" style="background: #fff9c4;">⏳</div>
+                <div class="stat-info">
+                    <h3 id="stat-pending">0</h3>
+                    <p>Chờ xác nhận</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon messages">💬</div>
+                <div class="stat-info">
+                    <h3 id="stat-messages">0</h3>
+                    <p>Tin nhắn</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('users')">👥 Quản lý Users</button>
+            <button class="tab" onclick="switchTab('bookings')">📅 Quản lý Bookings</button>
+        </div>
+
+        <!-- Users Panel -->
+        <div id="panel-users" class="content-panel active">
+            <h2 style="margin-bottom: 1.5rem;">Danh sách Users</h2>
+            <div id="users-table"></div>
+        </div>
+
+        <!-- Bookings Panel -->
+        <div id="panel-bookings" class="content-panel">
+            <h2 style="margin-bottom: 1.5rem;">Danh sách Bookings</h2>
+            <div class="filter-bar">
+                <select id="booking-status-filter" onchange="loadBookings(1)">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="pending">Chờ xác nhận</option>
+                    <option value="confirmed">Đã xác nhận</option>
+                    <option value="completed">Hoàn thành</option>
+                    <option value="cancelled">Đã hủy</option>
+                </select>
+            </div>
+            <div id="bookings-table"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentUserId = null;
+        let currentUserRole = null;
+        let currentUsersPage = 1;
+        let currentBookingsPage = 1;
+
+        // Kiểm tra đăng nhập và quyền admin
+        function checkAuth() {
+            const userId = localStorage.getItem('dalat_user_id');
+            const userRole = localStorage.getItem('dalat_user_role');
+            const userName = localStorage.getItem('dalat_user_name');
+
+            if (!userId || userRole !== 'admin') {
+                document.getElementById('no-access').style.display = 'block';
+                document.getElementById('admin-content').style.display = 'none';
+                return false;
+            }
+
+            currentUserId = parseInt(userId);
+            currentUserRole = userRole;
+            document.getElementById('admin-name').textContent = userName || 'Admin';
+            return true;
+        }
+
+        // Tải thống kê
+        async function loadStats() {
+            try {
+                const res = await fetch('/api/admin/stats', {
+                    headers: { 'x-user-id': currentUserId }
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    document.getElementById('stat-users').textContent = data.stats.total_users;
+                    document.getElementById('stat-bookings').textContent = data.stats.total_bookings;
+                    document.getElementById('stat-pending').textContent = data.stats.pending_bookings;
+                    document.getElementById('stat-messages').textContent = data.stats.total_messages;
+                }
+            } catch (error) {
+                console.error('Lỗi tải thống kê:', error);
+            }
+        }
+
+        // Tải danh sách users
+        async function loadUsers(page = 1) {
+            currentUsersPage = page;
+            const container = document.getElementById('users-table');
+            container.innerHTML = '<div class="loading">Đang tải...</div>';
+
+            try {
+                const res = await fetch(`/api/admin/users?page=${page}&limit=20`, {
+                    headers: { 'x-user-id': currentUserId }
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    let html = `
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Tên</th>
+                                    <th>Email</th>
+                                    <th>Số ĐT</th>
+                                    <th>Role</th>
+                                    <th>Ngày tạo</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+
+                    data.users.forEach(user => {
+                        html += `
+                            <tr>
+                                <td>${user.id}</td>
+                                <td>${user.name}</td>
+                                <td>${user.email}</td>
+                                <td>${user.phone}</td>
+                                <td><span class="badge ${user.role}">${user.role}</span></td>
+                                <td>${new Date(user.created_at).toLocaleDateString('vi-VN')}</td>
+                                <td>
+                                    <button class="action-btn btn-edit" onclick="toggleRole(${user.id}, '${user.role}')">
+                                        ${user.role === 'admin' ? '→ User' : '→ Admin'}
+                                    </button>
+                                    <button class="action-btn btn-delete" onclick="deleteUser(${user.id})">Xóa</button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+
+                    html += '</tbody></table>';
+                    
+                    // Pagination
+                    if (data.pagination.totalPages > 1) {
+                        html += '<div class="pagination">';
+                        html += `<button ${page === 1 ? 'disabled' : ''} onclick="loadUsers(${page - 1})">« Trước</button>`;
+                        for (let i = 1; i <= data.pagination.totalPages; i++) {
+                            html += `<button class="${i === page ? 'active' : ''}" onclick="loadUsers(${i})">${i}</button>`;
+                        }
+                        html += `<button ${page === data.pagination.totalPages ? 'disabled' : ''} onclick="loadUsers(${page + 1})">Sau »</button>`;
+                        html += '</div>';
+                    }
+
+                    container.innerHTML = html;
+                }
+            } catch (error) {
+                container.innerHTML = '<div class="loading">Lỗi tải dữ liệu</div>';
+            }
+        }
+
+        // Tải danh sách bookings
+        async function loadBookings(page = 1) {
+            currentBookingsPage = page;
+            const container = document.getElementById('bookings-table');
+            const status = document.getElementById('booking-status-filter').value;
+            container.innerHTML = '<div class="loading">Đang tải...</div>';
+
+            try {
+                const url = `/api/admin/bookings?page=${page}&limit=20${status ? '&status=' + status : ''}`;
+                const res = await fetch(url, {
+                    headers: { 'x-user-id': currentUserId }
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    if (!data.bookings || data.bookings.length === 0) {
+                        container.innerHTML = `
+                            <div class="loading">
+                                <p>📭 Chưa có booking nào${status ? ' với trạng thái này' : ''}.</p>
+                                ${!status ? '<p style="margin-top: 10px; color: #666;">Bookings sẽ được hiển thị khi khách hàng đặt chỗ qua chatbot.</p>' : ''}
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    let html = `
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Địa điểm</th>
+                                    <th>Loại</th>
+                                    <th>Khách hàng</th>
+                                    <th>User</th>
+                                    <th>Ngày</th>
+                                    <th>Số người</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+
+                    data.bookings.forEach(booking => {
+                        const dateStr = booking.type === 'room' 
+                            ? `${new Date(booking.date_in).toLocaleDateString('vi-VN')} - ${new Date(booking.date_out).toLocaleDateString('vi-VN')}`
+                            : `${new Date(booking.date_in).toLocaleDateString('vi-VN')} ${booking.time || ''}`;
+                        
+                        html += `
+                            <tr>
+                                <td>${booking.id}</td>
+                                <td>${booking.place_name}</td>
+                                <td>${booking.type === 'room' ? '🏨 Phòng' : '🍽️ Bàn'}</td>
+                                <td>${booking.customer_name}<br><small>${booking.phone}</small></td>
+                                <td>${booking.user_name}<br><small>${booking.user_email}</small></td>
+                                <td>${dateStr}</td>
+                                <td>${booking.guests}</td>
+                                <td><span class="badge ${booking.status}">${getStatusText(booking.status)}</span></td>
+                                <td>
+                                    ${booking.status === 'pending' ? 
+                                        `<button class="action-btn btn-confirm" onclick="updateBookingStatus(${booking.id}, 'confirmed')">Xác nhận</button>` : ''}
+                                    <select onchange="updateBookingStatus(${booking.id}, this.value)">
+                                        <option value="">Đổi trạng thái</option>
+                                        <option value="pending">Chờ xác nhận</option>
+                                        <option value="confirmed">Đã xác nhận</option>
+                                        <option value="completed">Hoàn thành</option>
+                                        <option value="cancelled">Đã hủy</option>
+                                    </select>
+                                    <button class="action-btn btn-delete" onclick="deleteBooking(${booking.id})">Xóa</button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+
+                    html += '</tbody></table>';
+                    
+                    // Pagination
+                    if (data.pagination.totalPages > 1) {
+                        html += '<div class="pagination">';
+                        html += `<button ${page === 1 ? 'disabled' : ''} onclick="loadBookings(${page - 1})">« Trước</button>`;
+                        for (let i = 1; i <= data.pagination.totalPages; i++) {
+                            html += `<button class="${i === page ? 'active' : ''}" onclick="loadBookings(${i})">${i}</button>`;
+                        }
+                        html += `<button ${page === data.pagination.totalPages ? 'disabled' : ''} onclick="loadBookings(${page + 1})">Sau »</button>`;
+                        html += '</div>';
+                    }
+
+                    container.innerHTML = html;
+                } else {
+                    container.innerHTML = '<div class="loading">❌ Lỗi: ' + (data.message || 'Không thể tải dữ liệu') + '</div>';
+                }
+            } catch (error) {
+                console.error('Lỗi tải bookings:', error);
+                container.innerHTML = '<div class="loading">❌ Lỗi kết nối server. Vui lòng kiểm tra console.</div>';
+            }
+        }
+
+        function getStatusText(status) {
+            const map = {
+                'pending': 'Chờ xác nhận',
+                'confirmed': 'Đã xác nhận',
+                'completed': 'Hoàn thành',
+                'cancelled': 'Đã hủy'
+            };
+            return map[status] || status;
+        }
+
+        // Chuyển tab
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.content-panel').forEach(p => p.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById('panel-' + tab).classList.add('active');
+            
+            if (tab === 'users') loadUsers(currentUsersPage);
+            if (tab === 'bookings') loadBookings(currentBookingsPage);
+        }
+
+        // Toggle role user
+        async function toggleRole(userId, currentRole) {
+            const newRole = currentRole === 'admin' ? 'user' : 'admin';
+            if (!confirm(`Bạn có chắc muốn đổi role thành "${newRole}"?`)) return;
+
+            try {
+                const res = await fetch(`/api/admin/users/${userId}/role`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-user-id': currentUserId
+                    },
+                    body: JSON.stringify({ role: newRole })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    alert('✅ ' + data.message);
+                    loadUsers(currentUsersPage);
+                    loadStats();
+                } else {
+                    alert('❌ ' + data.message);
+                }
+            } catch (error) {
+                alert('❌ Lỗi kết nối server');
+            }
+        }
+
+        // Xóa user
+        async function deleteUser(userId) {
+            if (!confirm('Bạn có chắc muốn xóa user này? Tất cả dữ liệu liên quan sẽ bị xóa!')) return;
+
+            try {
+                const res = await fetch(`/api/admin/users/${userId}`, {
+                    method: 'DELETE',
+                    headers: { 'x-user-id': currentUserId }
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    alert('✅ ' + data.message);
+                    loadUsers(currentUsersPage);
+                    loadStats();
+                } else {
+                    alert('❌ ' + data.message);
+                }
+            } catch (error) {
+                alert('❌ Lỗi kết nối server');
+            }
+        }
+
+        // Cập nhật trạng thái booking
+        async function updateBookingStatus(bookingId, status) {
+            if (!status) return;
+
+            try {
+                const res = await fetch(`/api/admin/bookings/${bookingId}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-user-id': currentUserId
+                    },
+                    body: JSON.stringify({ status })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    loadBookings(currentBookingsPage);
+                    loadStats();
+                } else {
+                    alert('❌ ' + data.message);
+                }
+            } catch (error) {
+                alert('❌ Lỗi kết nối server');
+            }
+        }
+
+        // Xóa booking
+        async function deleteBooking(bookingId) {
+            if (!confirm('Bạn có chắc muốn xóa booking này?')) return;
+
+            try {
+                const res = await fetch(`/api/admin/bookings/${bookingId}`, {
+                    method: 'DELETE',
+                    headers: { 'x-user-id': currentUserId }
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    alert('✅ ' + data.message);
+                    loadBookings(currentBookingsPage);
+                    loadStats();
+                } else {
+                    alert('❌ ' + data.message);
+                }
+            } catch (error) {
+                alert('❌ Lỗi kết nối server');
+            }
+        }
+
+        // Đăng xuất
+        function logout() {
+            if (confirm('Bạn có chắc muốn đăng xuất?')) {
+                // Xóa tất cả thông tin user khỏi localStorage
+                localStorage.removeItem('dalat_user_logged_in');
+                localStorage.removeItem('dalat_user_id');
+                localStorage.removeItem('dalat_user_name');
+                localStorage.removeItem('dalat_user_email');
+                localStorage.removeItem('dalat_user_phone');
+                localStorage.removeItem('dalat_user_role');
+                localStorage.removeItem('dalat_user_password');
+                localStorage.removeItem('dalat_user_address');
+                window.location.href = '/';
+            }
+        }
+
+        // Khởi tạo
+        if (checkAuth()) {
+            loadStats();
+            loadUsers(1);
+        }
+    </script>
+</body>
+</html>
