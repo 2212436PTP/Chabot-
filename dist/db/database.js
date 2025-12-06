@@ -6,7 +6,10 @@ import 'dotenv/config';
 const pool = new Pool(process.env.DATABASE_URL
     ? {
         connectionString: process.env.DATABASE_URL,
-        ssl: process.env.DB_SSL === 'false' ? false : { rejectUnauthorized: false }
+        ssl: { rejectUnauthorized: false },
+        max: 10,
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 10000,
     }
     : {
         host: process.env.DB_HOST || 'localhost',
