@@ -1,9 +1,9 @@
 # Netlify Configuration for Dalat Chatbot
 
-# Redirect API calls to Render backend
+# Redirect API calls to Railway backend
 [[redirects]]
   from = "/api/*"
-  to = "https://chabot-18gm.onrender.com/api/:splat"
+  to = "https://chabot-production-2a2d.up.railway.app/api/:splat"
   status = 200
   force = true
   headers = {X-From = "Netlify"}
