@@ -1,0 +1,28 @@
+# Netlify Configuration for Dalat Chatbot
+
+# Redirect API calls to Render backend
+[[redirects]]
+  from = "/api/*"
+  to = "https://YOUR-RENDER-APP-NAME.onrender.com/api/:splat"
+  status = 200
+  force = true
+  headers = {X-From = "Netlify"}
+
+# Build settings
+[build]
+  publish = "public"
+  
+# Headers for security and CORS
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type, Authorization"

@@ -1,0 +1,6 @@
+# Render Build Configuration
+buildCommand: "npm install && npm run build"
+startCommand: "npm start"
+
+# Environment
+NODE_VERSION: 20
