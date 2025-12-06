@@ -3,7 +3,7 @@
 # Redirect API calls to Render backend
 [[redirects]]
   from = "/api/*"
-  to = "https://YOUR-RENDER-APP-NAME.onrender.com/api/:splat"
+  to = "https://chabot-18gm.onrender.com/api/:splat"
   status = 200
   force = true
   headers = {X-From = "Netlify"}
