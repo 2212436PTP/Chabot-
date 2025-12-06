@@ -15,11 +15,68 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public')); // Phục vụ Giao diện
 // Khởi tạo database khi server start
-initDatabase()
-    .then(() => console.log('✅ Database initialized'))
-    .catch(err => {
-    console.error('⚠️ Database init failed (app will continue):', err.message);
-});
+(async () => {
+    try {
+        await initDatabase();
+        console.log('✅ Database initialized successfully');
+    }
+    catch (err) {
+        console.error('⚠️ Database init failed:', err.message);
+        // Tạo tables bằng raw SQL nếu init fail
+        try {
+            await pool.query(`
+        CREATE TABLE IF NOT EXISTS users (
+          id SERIAL PRIMARY KEY,
+          name VARCHAR(255) NOT NULL,
+          email VARCHAR(255) UNIQUE NOT NULL,
+          phone VARCHAR(20) NOT NULL,
+          password_hash VARCHAR(255) NOT NULL,
+          address TEXT,
+          role VARCHAR(20) DEFAULT 'user',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE TABLE IF NOT EXISTS chat_history (
+          id SERIAL PRIMARY KEY,
+          user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+          message TEXT NOT NULL,
+          sender VARCHAR(10) NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE TABLE IF NOT EXISTS bookings (
+          id SERIAL PRIMARY KEY,
+          user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+          place_name VARCHAR(255) NOT NULL,
+          type VARCHAR(10) NOT NULL,
+          customer_name VARCHAR(255) NOT NULL,
+          phone VARCHAR(20) NOT NULL,
+          date_in DATE NOT NULL,
+          date_out DATE,
+          time TIME,
+          guests INTEGER NOT NULL,
+          status VARCHAR(20) DEFAULT 'pending',
+          notified_at TIMESTAMP,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE TABLE IF NOT EXISTS admin_notifications (
+          id SERIAL PRIMARY KEY,
+          type VARCHAR(50) NOT NULL DEFAULT 'new_booking',
+          title VARCHAR(255) NOT NULL,
+          message TEXT NOT NULL,
+          booking_id INTEGER REFERENCES bookings(id) ON DELETE CASCADE,
+          is_read BOOLEAN DEFAULT FALSE,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+        CREATE INDEX IF NOT EXISTS idx_bookings_status ON bookings(status);
+      `);
+            console.log('✅ Tables created via fallback SQL');
+        }
+        catch (sqlErr) {
+            console.error('❌ Fallback SQL also failed:', sqlErr.message);
+        }
+    }
+})();
 // [API MỚI] Đăng ký
 app.post('/api/auth/register', async (req, res) => {
     try {
