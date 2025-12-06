@@ -23,9 +23,11 @@ app.use(express.json());
 app.use(express.static('public')); // Phục vụ Giao diện
 
 // Khởi tạo database khi server start
-initDatabase().catch(err => {
-  console.error('Không thể khởi tạo database:', err);
-});
+initDatabase()
+  .then(() => console.log('✅ Database initialized'))
+  .catch(err => {
+    console.error('⚠️ Database init failed (app will continue):', err.message);
+  });
 
 // [API MỚI] Đăng ký
 app.post('/api/auth/register', async (req, res) => {
