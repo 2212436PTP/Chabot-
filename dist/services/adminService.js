@@ -128,7 +128,7 @@ export async function getDashboardStats() {
         const stats = await pool.query(`
       SELECT 
         (SELECT COUNT(*) FROM users WHERE role = 'user') as total_users,
-        (SELECT COUNT(*) FROM bookings) as total_bookings,
+        (SELECT COUNT(*) FROM bookings WHERE status = 'confirmed') as total_bookings,
         (SELECT COUNT(*) FROM bookings WHERE status = 'pending') as pending_bookings,
         (SELECT COUNT(*) FROM bookings WHERE status = 'confirmed') as confirmed_bookings,
         (SELECT COUNT(*) FROM bookings WHERE status = 'completed') as completed_bookings,
@@ -143,5 +143,148 @@ export async function getDashboardStats() {
     catch (error) {
         console.error('Lỗi lấy thống kê:', error);
         return { success: false, stats: null };
+    }
+}
+// Lấy bookings mới chưa xử lý (cho thông báo admin)
+export async function getPendingBookingsForNotification() {
+    try {
+        const result = await pool.query(`
+      SELECT b.*, u.name as user_name, u.email as user_email
+      FROM bookings b
+      JOIN users u ON b.user_id = u.id
+      WHERE b.status = 'pending'
+      ORDER BY b.created_at DESC
+      LIMIT 10
+    `);
+        return {
+            success: true,
+            bookings: result.rows
+        };
+    }
+    catch (error) {
+        console.error('Lỗi lấy pending bookings:', error);
+        return { success: false, bookings: [] };
+    }
+}
+// Đánh dấu booking đã được thông báo (tránh spam)
+export async function markBookingAsNotified(bookingId) {
+    try {
+        // Có thể thêm trường `notified_at` vào bảng bookings nếu cần
+        console.log(`📱 Booking ID ${bookingId} đã được thông báo cho admin`);
+        return { success: true };
+    }
+    catch (error) {
+        console.error('Lỗi đánh dấu booking notification:', error);
+        return { success: false };
+    }
+}
+// Lấy thông báo admin
+export async function getAdminNotifications(limit = 20) {
+    try {
+        const result = await pool.query(`
+      SELECT n.*, b.customer_name, b.place_name, b.type, b.date_in, b.time
+      FROM admin_notifications n
+      LEFT JOIN bookings b ON n.booking_id = b.id
+      ORDER BY n.created_at DESC
+      LIMIT $1
+    `, [limit]);
+        return {
+            success: true,
+            notifications: result.rows
+        };
+    }
+    catch (error) {
+        console.error('Lỗi lấy admin notifications:', error);
+        return { success: false, notifications: [] };
+    }
+}
+// Đánh dấu thông báo đã đọc
+export async function markNotificationAsRead(notificationId) {
+    try {
+        await pool.query('UPDATE admin_notifications SET is_read = TRUE WHERE id = $1', [notificationId]);
+        return { success: true, message: 'Đã đánh dấu thông báo' };
+    }
+    catch (error) {
+        console.error('Lỗi đánh dấu thông báo:', error);
+        return { success: false, message: 'Lỗi hệ thống' };
+    }
+}
+// Đánh dấu tất cả thông báo đã đọc
+export async function markAllNotificationsAsRead() {
+    try {
+        await pool.query('UPDATE admin_notifications SET is_read = TRUE WHERE is_read = FALSE');
+        return { success: true, message: 'Đã đánh dấu tất cả thông báo' };
+    }
+    catch (error) {
+        console.error('Lỗi đánh dấu tất cả thông báo:', error);
+        return { success: false, message: 'Lỗi hệ thống' };
+    }
+}
+// Lấy số thông báo chưa đọc
+export async function getUnreadNotificationCount() {
+    try {
+        const result = await pool.query('SELECT COUNT(*) FROM admin_notifications WHERE is_read = FALSE');
+        return {
+            success: true,
+            count: parseInt(result.rows[0].count)
+        };
+    }
+    catch (error) {
+        console.error('Lỗi đếm thông báo chưa đọc:', error);
+        return { success: false, count: 0 };
+    }
+}
+// Lấy booking gần đây (cho chatbot)
+export async function getRecentBookings(minutesAgo = 1) {
+    try {
+        const result = await pool.query(`
+      SELECT id, customer_name, phone, place_name as restaurant, 
+             guests, date_in as date, time, status, created_at
+      FROM bookings 
+      WHERE created_at >= NOW() - INTERVAL '${minutesAgo} minutes'
+      AND status = 'pending'
+      ORDER BY created_at DESC
+    `);
+        return result.rows;
+    }
+    catch (error) {
+        console.error('Lỗi lấy booking gần đây:', error);
+        return [];
+    }
+}
+// Gửi thông báo realtime đến admin (qua SSE)
+export async function notifyAdminNewBooking(bookingData) {
+    try {
+        console.log('📱 Đang gửi thông báo booking mới đến admin chatbot...');
+        console.log('📊 Số admin connections:', globalThis.adminConnections?.size || 0);
+        // Gửi qua Server-Sent Events nếu có connection
+        if (globalThis.adminConnections && globalThis.adminConnections.size > 0) {
+            const messageData = {
+                type: 'new_booking',
+                booking: bookingData,
+                timestamp: new Date().toISOString()
+            };
+            console.log('📤 Gửi data:', JSON.stringify(messageData));
+            globalThis.adminConnections.forEach((res, userId) => {
+                try {
+                    res.write(`data: ${JSON.stringify(messageData)}\n\n`);
+                    console.log(`✅ Đã gửi SSE đến admin ${userId}`);
+                }
+                catch (error) {
+                    console.log(`❌ Lỗi gửi SSE đến admin ${userId}:`, error);
+                    globalThis.adminConnections?.delete(userId);
+                }
+            });
+            console.log('✅ Đã gửi thông báo booking mới đến admin chatbot');
+            return { success: true };
+        }
+        else {
+            console.log('⚠️ Không có admin nào đang kết nối SSE');
+            return { success: false, message: 'No admin connections' };
+        }
+    }
+    catch (error) {
+        console.error('❌ Lỗi gửi thông báo admin:', error);
+        return { success: false };
     }
 }

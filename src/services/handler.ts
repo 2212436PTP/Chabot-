@@ -203,6 +203,39 @@ export async function handleMessage(
       if (ctx.itinerarySlots) ctx.itinerarySlots = undefined;
       break;
 
+      case 'booking':
+        // Chuyển hướng đến flow booking để hiển thị các lựa chọn đặt bàn
+        const bookingNode = FLOW.nodes.booking;
+        if (bookingNode) {
+          const bookingChoices = bookingNode.choices.map(choice => {
+            // Kiểm tra xem choice có payload không (cho đặt bàn)
+            if ((choice as any).payload) {
+              return {
+                label: choice.label,
+                payload: (choice as any).payload
+              };
+            }
+            // Nếu không có payload thì dùng logic cũ
+            return {
+              label: choice.label,
+              payload: { 
+                action: choice.link ? 'open_link' : 'go_node', 
+                value: choice.link || choice.next || 'intro'
+              } as ClientPayload
+            };
+          });
+
+          sessionStore.set(sid, ctx);
+          return {
+            response: bookingNode.text,
+            choices: bookingChoices as any 
+          };
+        } else {
+          responseText = "Xin lỗi, chức năng đặt bàn hiện tại chưa khả dụng.";
+        }
+        if (ctx.itinerarySlots) ctx.itinerarySlots = undefined;
+        break;
+
       case 'general_knowledge':
         responseText = await aiService.getGeneralAnswer(q);
         if (ctx.itinerarySlots) ctx.itinerarySlots = undefined;

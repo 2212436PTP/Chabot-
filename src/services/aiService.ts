@@ -26,7 +26,7 @@ const nluPromptTemplate = `
   Nhiệm vụ của bạn là phân tích câu hỏi của người dùng và CHỈ trả về một đối tượng JSON.
   Không giải thích, không thêm bất cứ chữ gì ngoài JSON.
 
-  Các 'intent' (ý định) hợp lệ là: [nuong, cafe, sight, itinerary, stay, transport, food, general_knowledge, context_followup, specific_place, recall_itinerary, unknown].
+  Các 'intent' (ý định) hợp lệ là: [nuong, cafe, sight, itinerary, stay, transport, food, booking, general_knowledge, context_followup, specific_place, recall_itinerary, unknown].
   Các 'slots' (thực thể) hợp lệ là: [area, near_place, groupSize, budget, dish, theme, days, nights, traveler_type, pace, stay_type, price_range, vehicle_type].
   
   QUAN TRỌNG: 
@@ -133,12 +133,23 @@ const nluPromptTemplate = `
   JSON:
   { "intent": "sight", "slots": { "theme": "trẻ em" } }
   
-  Câu hỏi của người dùng: "Dinh 3 Bảo Đại"
-  JSON:
-  { "intent": "specific_place", "slots": { "name": "Dinh III Bảo Đại" } }
-  --- KẾT THÚC VÍ DỤ ---
-
-  Câu hỏi của người dùng: "{QUERY}"
+  Câu hỏi của người dùng: "Dinh 3 Bảo Đại"
+  JSON:
+  { "intent": "specific_place", "slots": { "name": "Dinh III Bảo Đại" } }
+  
+  Câu hỏi của người dùng: "đặt bàn"
+  JSON:
+  { "intent": "booking", "slots": {} }
+  
+  Câu hỏi của người dùng: "muốn đặt bàn nhà hàng"
+  JSON:
+  { "intent": "booking", "slots": {} }
+  
+  Câu hỏi của người dùng: "tôi muốn book bàn"
+  JSON:
+  { "intent": "booking", "slots": {} }
+  
+  --- KẾT THÚC VÍ DỤ ---  Câu hỏi của người dùng: "{QUERY}"
   JSON:
 `;
 

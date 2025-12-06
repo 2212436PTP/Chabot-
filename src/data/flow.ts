@@ -89,6 +89,39 @@ export const FLOW: FlowData = {
     },
 
     /* ===== ẨM THỰC & CAFE ===== */
+
+    coffee: {
+      text: "Bạn muốn cafe kiểu gì?",
+      choices: [
+        { label: "🌄 View rừng/đồi", next: "foods_cafe_view" },
+        { label: "🏙️ Gần trung tâm", next: "foods_cafe_center" },
+        { label: "🌅 Rooftop/hoàng hôn", next: "foods_cafe_rooftop" },
+        { label: "🌾 Nông trại cà phê", next: "foods_cafe_farm" },
+        { label: "⬅ Quay lại", next: "intro" },
+      ],
+    },
+    food: {
+      text: "Bạn muốn ăn gì?",
+      choices: [
+        { label: "🍜 Bữa sáng", next: "foods_breakfast" },
+        { label: "🍛 Bữa trưa/tối", next: "foods_meals" },
+        { label: "🍢 Ăn vặt/đặc sản", next: "foods_snacks" },
+        { label: "🥗 Ăn chay", next: "foods_vegan" },
+        { label: "🌙 Ăn đêm", next: "foods_night" },
+        { label: "⬅ Quay lại", next: "intro" },
+      ],
+    },
+    attractions: {
+      text: "Bạn muốn khám phá điểm nào?",
+      choices: [
+        { label: "🌲 Thiên nhiên", next: "sights_nature" },
+        { label: "🏛️ Văn hoá - lịch sử", next: "sights_culture" },
+        { label: "🌺 Vườn hoa & cảnh quan", next: "sights_gardens" },
+        { label: "📸 Điểm check-in đẹp", next: "sights_photo" },
+        { label: "🎯 Trải nghiệm vui chơi", next: "sights_activities" },
+        { label: "⬅ Quay lại", next: "intro" },
+      ],
+    },
     foods: {
       text: "Bạn muốn khám phá mục nào?",
       choices: [
@@ -229,26 +262,36 @@ export const FLOW: FlowData = {
       ],
     },
     hotel_market: {
-      text: "Gần chợ: TTC, Ngọc Phát, Dalat Plaza (500k–1tr/đêm).",
-      choices: [
-        { label: "📍 Tìm khách sạn gần chợ", link: "https://maps.google.com/?q=khach+san+gan+cho+Da+Lat", next: null },
-        { label: "⬅ Quay lại Lưu trú", next: "hotels" },
-      ],
-    },
+      text: "Gần chợ: TTC, Ngọc Phát, Dalat Plaza (500k–1tr/đêm). Xung quanh có chợ Đà Lạt, quán cafe đẹp, thuê xe máy tiện lợi, và các điểm tham quan như Nhà thờ Con Gà, Hồ Xuân Hương.",
+      choices: [
+        { label: "📍 Tìm khách sạn gần chợ", link: "https://maps.google.com/?q=khach+san+gan+cho+Da+Lat", next: null },
+        { label: "☕ Quán cafe gần chợ", next: "coffee" },
+        { label: "🍽️ Nhà hàng quanh đây", next: "food" },
+        { label: "🏍️ Thuê xe máy", next: "transport" },
+        { label: "📸 Điểm check-in gần", next: "attractions" },
+        { label: "⬅ Quay lại Lưu trú", next: "hotels" },
+      ],
+    },
     hotel_home: {
-      text: "Homestay view rừng: The Wilder Nest, Là Nhà, LengKeng (300k–700k/đêm).",
-      choices: [
-        { label: "📍 Tìm homestay view đẹp", link: "https://maps.google.com/?q=homestay+view+%C4%91%E1%BA%B9p+Da+Lat", next: null },
-        { label: "⬅ Quay lại Lưu trú", next: "hotels" },
-      ],
-    },
+      text: "Homestay view rừng: The Wilder Nest, Là Nhà, LengKeng (300k–700k/đêm). Gần thiên nhiên, có quán cafe yên tĩnh, dễ thuê xe khám phá đường rừng, thác Datanla và các điểm trekking.",
+      choices: [
+        { label: "📍 Tìm homestay view đẹp", link: "https://maps.google.com/?q=homestay+view+%C4%91%E1%BA%B9p+Da+Lat", next: null },
+        { label: "☕ Cafe view rừng", next: "coffee" },
+        { label: "🌲 Điểm trekking gần", next: "attractions" },
+        { label: "🏍️ Thuê xe máy", next: "transport" },
+        { label: "⬅ Quay lại Lưu trú", next: "hotels" },
+      ],
+    },
     hotel_resort: {
-      text: "Resort: Ana Mandara, Terracotta, Edensee (từ ~1tr5/đêm).",
-      choices: [
-        { label: "📍 Tìm resort", link: "https://maps.google.com/?q=resort+Da+Lat", next: null },
-        { label: "⬅ Quay lại Lưu trú", next: "hotels" },
-      ],
-    },
+      text: "Resort: Ana Mandara, Terracotta, Edensee (từ ~1tr5/đêm). Resort thường có nhà hàng cao cấp, spa, gần sân golf, và các điểm du lịch nổi tiếng.",
+      choices: [
+        { label: "📍 Tìm resort", link: "https://maps.google.com/?q=resort+Da+Lat", next: null },
+        { label: "🍽️ Nhà hàng cao cấp", next: "food" },
+        { label: "⛳ Sân golf gần đây", link: "https://maps.google.com/?q=san+golf+Da+Lat", next: null },
+        { label: "📸 Điểm tham quan", next: "attractions" },
+        { label: "⬅ Quay lại Lưu trú", next: "hotels" },
+      ],
+    },
     hotel_budget: {
       text: "Ngân sách < 400k: dorm/mini hotel xa trung tâm hơn, nên đặt sớm.",
       choices: [

@@ -1088,4 +1088,95 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Bắt đầu cuộc trò chuyện bằng cách gọi node 'intro'
     sendMessage({ q: null, payload: { action: 'go_node', value: 'intro' } });
+    
+    // ========== ADMIN NOTIFICATION POLLING ==========
+    if (isLoggedIn && userRole === 'admin') {
+        console.log('👑 Admin đã đăng nhập! Bắt đầu polling notifications...');
+        let lastBookingId = 0;
+        
+        async function checkForNewBookings() {
+            try {
+                const res = await fetch('/api/admin/notifications/latest', {
+                    headers: { 'x-user-id': userId.toString() }
+                });
+                const data = await res.json();
+                
+                if (data.success && data.hasNew && data.booking) {
+                    // Kiểm tra xem đây có phải booking mới chưa thấy không
+                    if (data.booking.id > lastBookingId) {
+                        console.log('🔔 Admin phát hiện booking mới! ID:', data.booking.id);
+                        lastBookingId = data.booking.id;
+                        showAdminBookingNotification(data.booking);
+                    }
+                }
+            } catch (error) {
+                console.error('❌ Lỗi check admin notifications:', error);
+            }
+        }
+        
+        function showAdminBookingNotification(booking) {
+            // Hiển thị chatbot nếu đang đóng
+            if (!chatWidget.classList.contains('open')) {
+                launcherButton.click();
+            }
+            
+            // Format ngày giờ đẹp
+            let dateStr = booking.date;
+            try {
+                const dateObj = new Date(booking.date);
+                dateStr = dateObj.toLocaleDateString('vi-VN', { 
+                    year: 'numeric', 
+                    month: '2-digit', 
+                    day: '2-digit' 
+                });
+            } catch (e) {
+                console.log('Không thể format date:', e);
+            }
+            
+            const timeStr = booking.time || 'Chưa xác định';
+            
+            // Tạo tin nhắn thông báo với HTML
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message bot';
+            msgDiv.style.cssText = 'background: linear-gradient(135deg, #fff3cd, #ffeaa7); border: 2px solid #ffc107; padding: 15px; border-radius: 15px;';
+            msgDiv.innerHTML = `
+                🔔 <strong style="color: #f39c12;">Có đặt bàn mới!</strong><br><br>
+                📅 <strong>Thời gian:</strong> ${dateStr} lúc ${timeStr}<br>
+                👥 <strong>Số người:</strong> ${booking.guests}<br>
+                🏠 <strong>Nhà hàng:</strong> ${booking.restaurant}<br>
+                👤 <strong>Khách hàng:</strong> ${booking.customer_name}<br>
+                📞 <strong>SĐT:</strong> ${booking.phone}<br><br>
+                <button onclick="window.location.href='/admin.html?tab=bookings&bookingId=${booking.id}'" 
+                        style="background: linear-gradient(135deg, #4CAF50, #2E7D32); 
+                               color: white; 
+                               border: none; 
+                               padding: 10px 20px; 
+                               border-radius: 20px; 
+                               cursor: pointer; 
+                               font-weight: 600;
+                               margin-top: 10px;
+                               box-shadow: 0 2px 10px rgba(76, 175, 80, 0.3);
+                               transition: all 0.3s;">
+                    📋 Xem chi tiết & Xác nhận
+                </button>
+            `;
+            
+            chatMessages.appendChild(msgDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            // Phát âm thanh thông báo
+            try {
+                const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+LvuWUcBSuBzvHZiTYIF2G47+mVTAwOg');
+                audio.play().catch(e => console.log('Không thể phát âm thanh:', e));
+            } catch (e) {
+                console.log('Không thể tạo âm thanh thông báo');
+            }
+        }
+        
+        // Check ngay lần đầu
+        checkForNewBookings();
+        
+        // Polling mỗi 5 giây
+        setInterval(checkForNewBookings, 5000);
+    }
 });

@@ -20,18 +20,17 @@ export interface Place {
 
 // --- 2. CẤU TRÚC KỊCH BẢN NÚT BẤM (FLOW) ---
 export interface FlowChoice {
-  label: string;
-  next?: string | null; // Chuyển sang node khác
-  link?: string; // Mở link (Google Maps)
-}
-
-export interface FlowNode {
+  label: string;
+  next?: string | null; // Chuyển sang node khác
+  link?: string; // Mở link (Google Maps)
+  payload?: ClientPayload; // Payload cho các action đặc biệt như booking
+}export interface FlowNode {
   text: string;
   choices: FlowChoice[];
 }
 
 // --- 3. CẤU TRÚC AI (NLU) ---
-export type Intent = 'nuong' | 'cafe' | 'sight' | 'itinerary' | 'specific_place' | 'general_knowledge' | 'context_followup' | 'unknown' | 'stay' | 'transport' | 'food' | 'recall_itinerary';
+export type Intent = 'nuong' | 'cafe' | 'sight' | 'itinerary' | 'specific_place' | 'general_knowledge' | 'context_followup' | 'unknown' | 'stay' | 'transport' | 'food' | 'booking' | 'recall_itinerary';
 
 export interface Slots {
   [key: string]: any; // Linh hoạt

@@ -54,6 +54,147 @@
             color: #4CAF50;
         }
 
+        /* Admin Chatbot Popup Styles */
+        .admin-chatbot {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 350px;
+            height: 500px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .admin-chatbot.show {
+            display: flex;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .admin-chatbot-header {
+            background: linear-gradient(135deg, #4CAF50, #2E7D32);
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .admin-chatbot-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+        .admin-chatbot-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s;
+        }
+
+        .admin-chatbot-close:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .admin-chatbot-messages {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            overflow-y: auto;
+        }
+
+        .admin-message {
+            background: #f0f0f0;
+            padding: 12px 15px;
+            border-radius: 15px;
+            border-bottom-left-radius: 5px;
+            max-width: 85%;
+            align-self: flex-start;
+        }
+
+        .admin-message.notification {
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            border: 1px solid #ffc107;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .admin-message.notification:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3);
+        }
+
+        .admin-message-content {
+            margin-bottom: 8px;
+        }
+
+        .admin-message-time {
+            font-size: 0.8rem;
+            color: #666;
+            text-align: right;
+        }
+
+        .admin-notification-actions {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .admin-action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .admin-action-btn.primary {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .admin-action-btn.primary:hover {
+            background: #45a049;
+            transform: translateY(-1px);
+        }
+
+        .admin-action-btn.secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .admin-action-btn.secondary:hover {
+            background: #d0d0d0;
+        }
+
         .container {
             max-width: 1400px;
             margin: 2rem auto;
@@ -326,8 +467,6 @@
                     <option value="">Tất cả trạng thái</option>
                     <option value="pending">Chờ xác nhận</option>
                     <option value="confirmed">Đã xác nhận</option>
-                    <option value="completed">Hoàn thành</option>
-                    <option value="cancelled">Đã hủy</option>
                 </select>
             </div>
             <div id="bookings-table"></div>
@@ -494,7 +633,7 @@
                             : `${new Date(booking.date_in).toLocaleDateString('vi-VN')} ${booking.time || ''}`;
                         
                         html += `
-                            <tr>
+                            <tr data-booking-id="${booking.id}">
                                 <td>${booking.id}</td>
                                 <td>${booking.place_name}</td>
                                 <td>${booking.type === 'room' ? '🏨 Phòng' : '🍽️ Bàn'}</td>
@@ -506,13 +645,6 @@
                                 <td>
                                     ${booking.status === 'pending' ? 
                                         `<button class="action-btn btn-confirm" onclick="updateBookingStatus(${booking.id}, 'confirmed')">Xác nhận</button>` : ''}
-                                    <select onchange="updateBookingStatus(${booking.id}, this.value)">
-                                        <option value="">Đổi trạng thái</option>
-                                        <option value="pending">Chờ xác nhận</option>
-                                        <option value="confirmed">Đã xác nhận</option>
-                                        <option value="completed">Hoàn thành</option>
-                                        <option value="cancelled">Đã hủy</option>
-                                    </select>
                                     <button class="action-btn btn-delete" onclick="deleteBooking(${booking.id})">Xóa</button>
                                 </td>
                             </tr>
@@ -684,7 +816,168 @@
         if (checkAuth()) {
             loadStats();
             loadUsers(1);
+            startNotificationListener();
         }
+
+        // ========== ADMIN CHATBOT FUNCTIONS ==========
+        
+        let adminChatbot = null;
+        let chatMessages = [];
+        let hasUnreadNotifications = false;
+        let lastBookingId = 0;
+        let pollingInterval = null;
+        
+        // Tạo admin chatbot
+        function createAdminChatbot() {
+            if (adminChatbot) return;
+            
+            adminChatbot = document.createElement('div');
+            adminChatbot.className = 'admin-chatbot';
+            adminChatbot.innerHTML = `
+                <div class="admin-chatbot-header">
+                    <h3>🤖 Admin Assistant</h3>
+                    <button class="admin-chatbot-close" onclick="closeAdminChatbot()">×</button>
+                </div>
+                <div class="admin-chatbot-messages" id="admin-chat-messages">
+                    <div class="admin-message">
+                        <div class="admin-message-content">Xin chào! Tôi sẽ thông báo cho bạn khi có khách hàng đặt bàn mới.</div>
+                        <div class="admin-message-time">${new Date().toLocaleTimeString('vi-VN')}</div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(adminChatbot);
+        }
+        
+        // Hiển thị admin chatbot
+        function showAdminChatbot() {
+            createAdminChatbot();
+            adminChatbot.classList.add('show');
+        }
+        
+        // Đóng admin chatbot
+        function closeAdminChatbot() {
+            if (adminChatbot) {
+                adminChatbot.classList.remove('show');
+            }
+        }
+        
+        // Thêm tin nhắn vào chatbot
+        function addAdminMessage(content, isNotification = false, bookingId = null) {
+            const messagesContainer = document.getElementById('admin-chat-messages');
+            if (!messagesContainer) return;
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `admin-message ${isNotification ? 'notification' : ''}`;
+            
+            const currentTime = new Date().toLocaleTimeString('vi-VN');
+            
+            if (isNotification && bookingId) {
+                messageDiv.innerHTML = `
+                    <div class="admin-message-content">${content}</div>
+                    <div class="admin-notification-actions">
+                        <button class="admin-action-btn primary" onclick="goToBookingManagement(${bookingId})">Xem ngay</button>
+                        <button class="admin-action-btn secondary" onclick="dismissNotification(this)">Bỏ qua</button>
+                    </div>
+                    <div class="admin-message-time">${currentTime}</div>
+                `;
+            } else {
+                messageDiv.innerHTML = `
+                    <div class="admin-message-content">${content}</div>
+                    <div class="admin-message-time">${currentTime}</div>
+                `;
+            }
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        // Chuyển đến quản lý booking
+        function goToBookingManagement(bookingId) {
+            closeAdminChatbot();
+            switchTab('bookings');
+            
+            setTimeout(() => {
+                const bookingRow = document.querySelector(`[data-booking-id="${bookingId}"]`);
+                if (bookingRow) {
+                    bookingRow.style.background = '#fff3cd';
+                    bookingRow.scrollIntoView({ behavior: 'smooth' });
+                    setTimeout(() => {
+                        bookingRow.style.background = '';
+                    }, 3000);
+                }
+            }, 500);
+        }
+        
+        // Bỏ qua thông báo
+        function dismissNotification(button) {
+            const messageElement = button.closest('.admin-message');
+            messageElement.style.opacity = '0.5';
+            button.parentElement.style.display = 'none';
+        }
+        
+        // Hiển thị thông báo booking mới
+        function showNewBookingNotification(bookingData) {
+            showAdminChatbot();
+            
+            const message = `🔔 <strong>Có đặt bàn mới!</strong><br>
+                📅 ${bookingData.date} lúc ${bookingData.time}<br>
+                👥 ${bookingData.guests} người<br>
+                🏠 ${bookingData.restaurant}<br>
+                👤 ${bookingData.customer_name} - ${bookingData.phone}`;
+            
+            addAdminMessage(message, true, bookingData.id);
+            
+            // Phát âm thanh thông báo (tùy chọn)
+            try {
+                const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+LvuWUcBSuBzvHZiTYIF2G47+mVTAwOg');
+                audio.play().catch(e => console.log('Không thể phát âm thanh:', e));
+            } catch (e) {
+                console.log('Không thể tạo âm thanh thông báo');
+            }
+        }
+        
+        // Bắt đầu polling notifications
+        function startNotificationListener() {
+            console.log('🔌 Bắt đầu polling notifications...');
+            console.log('👤 Admin ID:', currentUserId);
+            
+            // Check ngay lần đầu
+            checkForNewBookings();
+            
+            // Polling mỗi 5 giây
+            pollingInterval = setInterval(() => {
+                checkForNewBookings();
+            }, 5000);
+        }
+        
+        async function checkForNewBookings() {
+            try {
+                const res = await fetch('/api/admin/notifications/latest', {
+                    headers: { 'x-user-id': currentUserId }
+                });
+                const data = await res.json();
+                
+                if (data.success && data.hasNew && data.booking) {
+                    // Kiểm tra xem đây có phải booking mới chưa thấy không
+                    if (data.booking.id > lastBookingId) {
+                        console.log('🔔 Phát hiện booking mới! ID:', data.booking.id);
+                        lastBookingId = data.booking.id;
+                        showNewBookingNotification(data.booking);
+                    }
+                }
+            } catch (error) {
+                console.error('❌ Lỗi check notifications:', error);
+            }
+        }
+    </script>
+
+    <!-- Modal đóng khi click bên ngoài -->
+    <script>
+        document.addEventListener('click', function(e) {
+            if (notificationModal && e.target === notificationModal) {
+                closeNotifications();
+            }
+        });
     </script>
 </body>
 </html>

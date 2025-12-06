@@ -1,9 +1,11 @@
 -- SQL script để tạo bảng trong PostgreSQL
 
 -- Xóa bảng nếu tồn tại (cho phép chạy lại script)
-DROP TABLE IF EXISTS bookings CASCADE;
-DROP TABLE IF EXISTS chat_history CASCADE;
-DROP TABLE IF EXISTS users CASCADE;
+-- Phải xóa theo thứ tự từ bảng con đến bảng cha
+DROP TABLE IF EXISTS admin_notifications;
+DROP TABLE IF EXISTS bookings;
+DROP TABLE IF EXISTS chat_history;
+DROP TABLE IF EXISTS users;
 
 -- Bảng users (người dùng)
 CREATE TABLE users (
@@ -40,6 +42,18 @@ CREATE TABLE bookings (
     time TIME,
     guests INTEGER NOT NULL,
     status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'cancelled', 'completed')),
+    notified_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Bảng admin_notifications (thông báo admin)
+CREATE TABLE admin_notifications (
+    id SERIAL PRIMARY KEY,
+    type VARCHAR(50) NOT NULL DEFAULT 'new_booking',
+    title VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    booking_id INTEGER REFERENCES bookings(id) ON DELETE CASCADE,
+    is_read BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -47,9 +61,9 @@ CREATE TABLE bookings (
 CREATE INDEX idx_chat_history_user_id ON chat_history(user_id);
 CREATE INDEX idx_chat_history_created_at ON chat_history(created_at);
 CREATE INDEX idx_bookings_user_id ON bookings(user_id);
+CREATE INDEX idx_bookings_status ON bookings(status);
 CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_admin_notifications_read ON admin_notifications(is_read);
+CREATE INDEX idx_admin_notifications_created_at ON admin_notifications(created_at);
 
--- Comment cho các bảng
-COMMENT ON TABLE users IS 'Bảng lưu thông tin người dùng';
-COMMENT ON TABLE chat_history IS 'Bảng lưu lịch sử chat giữa user và bot';
-COMMENT ON TABLE bookings IS 'Bảng lưu thông tin đặt bàn/phòng';
+-- Các bảng đã được tạo thành công

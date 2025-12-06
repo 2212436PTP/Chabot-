@@ -7,6 +7,12 @@ import { registerUser, loginUser } from './services/authService.js';
 import { saveChatMessage, getChatHistory, clearChatHistory, countUserMessages } from './services/chatHistoryService.js';
 import { initDatabase } from './db/init.js';
 import * as adminService from './services/adminService.js';
+import pool from './db/database.js';
+
+// Declare global type for admin connections
+declare global {
+  var adminConnections: Map<string, any> | undefined;
+}
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -235,6 +241,82 @@ app.delete('/api/admin/bookings/:id', checkAdmin, async (req, res) => {
   const bookingId = parseInt(req.params.id);
   const result = await adminService.deleteBooking(bookingId);
   res.json(result);
+});
+
+// Server-Sent Events cho admin notifications
+app.get('/api/admin/notifications/stream/:userId', async (req, res) => {
+  const userId = req.params.userId;
+  
+  // Kiểm tra quyền admin
+  const isAdminUser = await adminService.isAdmin(parseInt(userId));
+  if (!isAdminUser) {
+    res.status(403).json({ error: 'Không có quyền truy cập' });
+    return;
+  }
+  
+  console.log(`🔌 Admin ${userId} đã kết nối SSE`);
+  
+  // Thiết lập SSE headers
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('X-Accel-Buffering', 'no'); // Disable nginx buffering
+  
+  // Gửi message đầu tiên để confirm connection
+  res.write(`data: ${JSON.stringify({ type: 'connected', message: 'SSE connected successfully' })}\n\n`);
+
+  // Gửi heartbeat mỗi 30 giây để giữ kết nối
+  const heartbeat = setInterval(() => {
+    try {
+      res.write(`data: ${JSON.stringify({ type: 'heartbeat', timestamp: new Date().toISOString() })}\n\n`);
+    } catch (error) {
+      console.log(`❌ Lỗi gửi heartbeat đến admin ${userId}:`, error);
+      clearInterval(heartbeat);
+    }
+  }, 30000);
+
+  // Cleanup khi client disconnect
+  req.on('close', () => {
+    console.log(`❌ Admin ${userId} đã ngắt kết nối SSE`);
+    clearInterval(heartbeat);
+    globalThis.adminConnections?.delete(userId);
+  });
+
+  // Lưu connection để có thể gửi thông báo sau
+  globalThis.adminConnections = globalThis.adminConnections || new Map();
+  globalThis.adminConnections.set(userId, res);
+  console.log(`✅ Đã lưu SSE connection cho admin ${userId}. Tổng: ${globalThis.adminConnections.size}`);
+});
+
+// API lấy booking mới nhất (polling)
+app.get('/api/admin/notifications/latest', checkAdmin, async (req, res) => {
+  try {
+    // Lấy booking mới nhất (trong vòng 5 phút gần đây)
+    const result = await pool.query(`
+      SELECT id, customer_name, phone, place_name as restaurant, 
+             guests, date_in as date, time, status, created_at,
+             type
+      FROM bookings 
+      WHERE created_at >= NOW() - INTERVAL '5 minutes'
+      AND status = 'pending'
+      ORDER BY created_at DESC
+      LIMIT 1
+    `);
+    
+    const hasNew = result.rows.length > 0;
+    
+    console.log(`📊 Polling check: ${hasNew ? 'Có' : 'Không có'} booking mới`);
+    
+    res.json({
+      success: true,
+      hasNew,
+      booking: hasNew ? result.rows[0] : null
+    });
+  } catch (error) {
+    console.error('❌ Lỗi lấy latest booking:', error);
+    res.json({ success: false, error: 'Lỗi server' });
+  }
 });
 
 app.listen(port, () => {
